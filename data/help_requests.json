@@ -1,0 +1,59 @@
+[
+    {
+        "request_id": "RN-5982",
+        "type": "Medical",
+        "train": "12641",
+        "coach": "A1",
+        "seat": "32",
+        "timestamp": "11:27 AM",
+        "status": "Dispatched",
+        "assigned_unit": "Station Quick Response",
+        "notes": "Response team dispatched",
+        "responded_at": "11:27 AM"
+    },
+    {
+        "request_id": "RN-1181",
+        "type": "Medical",
+        "train": "12641",
+        "coach": "A1",
+        "seat": "32",
+        "timestamp": "11:26 AM",
+        "status": "Pending",
+        "assigned_unit": "Unassigned",
+        "notes": "Awaiting station master dispatch"
+    },
+    {
+        "request_id": "RN-5942",
+        "type": "Divyangjan Electric Buggy",
+        "train": "12641",
+        "coach": "A1",
+        "seat": "32",
+        "timestamp": "11:20 AM",
+        "status": "Pending",
+        "assigned_unit": "Unassigned",
+        "notes": "Awaiting station master dispatch"
+    },
+    {
+        "request_id": "RN-1148",
+        "type": "Medical",
+        "train": "12641",
+        "coach": "A1",
+        "seat": "32",
+        "timestamp": "11:19 AM",
+        "status": "Resolved",
+        "assigned_unit": "Station Staff",
+        "notes": "Completed",
+        "responded_at": "11:20 AM"
+    },
+    {
+        "request_id": "RN-2704",
+        "type": "Divyangjan Wheelchair / Buggy",
+        "train": "12641",
+        "coach": "A1",
+        "seat": "32",
+        "timestamp": "11:16 AM",
+        "status": "Pending",
+        "assigned_unit": "Unassigned",
+        "notes": "Elderly passenger requires battery cart transit across platforms."
+    }
+]

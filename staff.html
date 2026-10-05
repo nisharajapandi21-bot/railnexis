@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RailNexis - Station Operations & Edge Command</title>
+    <style>
+        :root {
+            --bg-base: #080D1A;
+            --bg-card: #131C31;
+            --border: #233352;
+            --primary: #38BDF8;
+            --primary-glow: rgba(56, 189, 248, 0.25);
+            --accent-green: #10B981;
+            --accent-yellow: #F59E0B;
+            --accent-red: #EF4444;
+            --accent-purple: #8B5CF6;
+            --accent-gold: #FBBF24;
+            --text-main: #F1F5F9;
+            --text-muted: #94A3B8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding-bottom: 2rem;
+        }
+
+        /* HEADER */
+        header {
+            background-color: #0B132B;
+            border-bottom: 1px solid var(--border);
+            padding: 0.85rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .brand-cluster {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+        }
+
+        .brand-icon {
+            font-size: 1.6rem;
+            background: linear-gradient(135deg, #0284C7, #38BDF8);
+            border-radius: 10px;
+            padding: 0.35rem 0.55rem;
+            box-shadow: 0 0 15px var(--primary-glow);
+        }
+
+        .brand-text h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .badge-edge {
+            font-size: 0.7rem;
+            font-weight: 600;
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--accent-green);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 20px;
+            padding: 0.15rem 0.6rem;
+            text-transform: uppercase;
+        }
+
+        .system-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+        }
+
+        .meta-pill {
+            background: #131C31;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.35rem 0.75rem;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-qr-hotspot {
+            background: linear-gradient(135deg, #0284C7, #0369A1);
+            color: #FFFFFF;
+            border: 1px solid var(--primary);
+            border-radius: 8px;
+            padding: 0.4rem 0.85rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            box-shadow: 0 0 12px rgba(2, 132, 199, 0.3);
+        }
+
+        /* 1-CLICK SCENARIOS TOOLBAR */
+        .scenarios-strip {
+            background: #0E172C;
+            border-bottom: 1px solid var(--border);
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .scenario-title {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--primary-light);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .scenario-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-scenario {
+            background: #16223B;
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 0.4rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            transition: all 0.2s;
+        }
+
+        .btn-scenario:hover {
+            border-color: var(--primary);
+            transform: translateY(-1px);
+        }
+
+        .btn-scenario.red:hover { border-color: var(--accent-red); background: rgba(239, 68, 68, 0.2); }
+        .btn-scenario.orange:hover { border-color: var(--accent-yellow); background: rgba(245, 158, 11, 0.2); }
+        .btn-scenario.gold:hover { border-color: var(--accent-gold); background: rgba(251, 191, 36, 0.2); }
+        .btn-scenario.green:hover { border-color: var(--accent-green); background: rgba(16, 185, 129, 0.2); }
+
+        /* MAIN GRID */
+        main {
+            max-width: 1440px;
+            width: 100%;
+            margin: 1.25rem auto;
+            padding: 0 1.25rem;
+            display: grid;
+            grid-template-columns: 1fr 440px;
+            gap: 1.25rem;
+        }
+
+        @media (max-width: 1100px) {
+            main { grid-template-columns: 1fr; }
+        }
+
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1.25rem;
+            margin-bottom: 1.25rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding-bottom: 0.65rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+        }
+
+        .card-header h2 {
+            font-size: 1.05rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* TELEMETRY */
+        .telemetry-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 0.75rem;
+        }
+
+        .stat-card {
+            background: rgba(11, 19, 43, 0.7);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 0.75rem;
+        }
+
+        .stat-card small {
+            display: block;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-card strong {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #FFFFFF;
+        }
+
+        /* CCTV */
+        .cctv-container {
+            position: relative;
+            background: #000;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 0.75rem;
+        }
+
+        #cctvCanvas {
+            width: 100%;
+            height: 220px;
+            display: block;
+            background: #070B14;
+        }
+
+        .cctv-hud-top {
+            position: absolute;
+            top: 8px; left: 10px; right: 10px;
+            display: flex; justify-content: space-between;
+            font-family: monospace; font-size: 0.75rem; color: #00FF66;
+            text-shadow: 0 0 5px rgba(0, 255, 102, 0.8);
+            pointer-events: none;
+        }
+
+        .cctv-hud-bottom {
+            position: absolute;
+            bottom: 8px; left: 10px; right: 10px;
+            display: flex; justify-content: space-between;
+            font-family: monospace; font-size: 0.75rem; color: #FFFFFF;
+            background: rgba(0, 0, 0, 0.75); padding: 0.25rem 0.5rem; border-radius: 4px;
+            pointer-events: none;
+        }
+
+        /* MESH TOPOLOGY */
+        #meshCanvas {
+            width: 100%;
+            height: 170px;
+            background: #0A0F1D;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            display: block;
+        }
+
+        /* FORM */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.85rem;
+        }
+
+        select, input[type="number"], input[type="text"] {
+            background-color: #0B132B;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-main);
+            padding: 0.55rem 0.75rem;
+            font-size: 0.88rem;
+            outline: none;
+            width: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #0284C7, #0369A1);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 1.25rem;
+            font-size: 0.92rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            width: 100%;
+        }
+
+        /* SWITCH */
+        .switch-container {
+            background: rgba(11, 19, 43, 0.8);
+            border: 1px dashed var(--border);
+            border-radius: 10px;
+            padding: 0.85rem;
+            margin-top: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .toggle { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .toggle input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #334155; transition: .3s; border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px;
+            background-color: white; transition: .3s; border-radius: 50%;
+        }
+        input:checked + .slider { background-color: var(--accent-red); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        /* AI COPILOT & TICKETS */
+        .ai-panel {
+            background: linear-gradient(160deg, #181639 0%, #131C31 60%);
+            border: 1px solid rgba(139, 92, 246, 0.35);
+        }
+
+        .suggestion-card {
+            background: rgba(11, 19, 43, 0.8);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 0.85rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .btn-apply-ai {
+            background: rgba(139, 92, 246, 0.25);
+            color: #DDD6FE;
+            border: 1px solid rgba(139, 92, 246, 0.5);
+            padding: 0.35rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 0.5rem;
+        }
+
+        .ticket-item {
+            background: #0B132B;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.85rem;
+            margin-bottom: 0.65rem;
+        }
+
+        .ticket-item.urgent { border-left: 4px solid var(--accent-red); }
+        .ticket-item.divyangjan { border-left: 4px solid var(--accent-gold); }
+
+        .btn-ticket {
+            padding: 0.25rem 0.55rem;
+            font-size: 0.72rem;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            background: #1E293B;
+            color: var(--text-main);
+            cursor: pointer;
+            margin-top: 0.4rem;
+            margin-right: 0.3rem;
+        }
+        .btn-ticket.gold { background: rgba(251, 191, 36, 0.2); color: #FDE68A; border-color: rgba(251, 191, 36, 0.4); }
+
+        /* QR HOTSPOT MODAL */
+        #qrModal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .qr-card {
+            background: #10182C;
+            border: 1px solid var(--primary);
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 480px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+        }
+
+        #qrCodeBox {
+            background: #FFFFFF;
+            padding: 1rem;
+            border-radius: 10px;
+            display: inline-block;
+            margin: 1.25rem auto;
+        }
+
+        #toast {
+            position: fixed; bottom: 2rem; right: 2rem; background: #0B132B;
+            border: 1px solid var(--accent-green); color: #FFFFFF; padding: 0.75rem 1.25rem;
+            border-radius: 10px; font-size: 0.85rem; display: flex; align-items: center;
+            gap: 0.6rem; opacity: 0; transform: translateY(20px); transition: all 0.3s;
+            pointer-events: none; z-index: 1000;
+        }
+        #toast.show { opacity: 1; transform: translateY(0); }
+    </style>
+</head>
+<body>
+
+    <!-- TOP HEADER -->
+    <header>
+        <div class="brand-cluster">
+            <div class="brand-icon">🚆</div>
+            <div class="brand-text">
+                <h1>RailNexis Command <span class="badge-edge">Edge Station Hub</span></h1>
+                <p>Local Railway Control Unit & Station Edge Mesh Node #04</p>
+            </div>
+        </div>
+
+        <div class="system-meta">
+            <button class="btn-qr-hotspot" onclick="openHotspotModal()">
+                <span>📱</span> <span>Open on Phone (Hotspot)</span>
+            </button>
+            <div class="meta-pill">
+                <span id="edgeStatusText">Edge Node: <strong>ONLINE (0.8ms)</strong></span>
+            </div>
+            <div class="meta-pill">
+                <span>🕒</span>
+                <span id="liveClock">--:--:--</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- 1-CLICK LIVE SCENARIO BAR (SYMPOSIUM READY) -->
+    <div class="scenarios-strip">
+        <div class="scenario-title">
+            <span>🎯</span> <span>Symposium 1-Click Simulation Scenarios:</span>
+        </div>
+        <div class="scenario-buttons">
+            <button class="btn-scenario red" onclick="triggerScenario('pf2_signal_failure')">
+                <span>🚨</span> 1. Track Fault (Divert to PF-4)
+            </button>
+            <button class="btn-scenario orange" onclick="triggerScenario('fob_stampede_risk')">
+                <span>👥</span> 2. FOB Stampede Bottleneck
+            </button>
+            <button class="btn-scenario gold" onclick="triggerScenario('divyangjan_transit')">
+                <span>♿</span> 3. Divyangjan Wheelchair Transit
+            </button>
+            <button class="btn-scenario green" onclick="triggerScenario('reset_normal')">
+                <span>🟢</span> 4. Reset Normal Green Corridor
+            </button>
+        </div>
+    </div>
+
+    <!-- MAIN BODY -->
+    <main>
+
+        <!-- LEFT COLUMN -->
+        <section>
+
+            <!-- LIVE TELEMETRY -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>📡 Station Master Live Telemetry</h2>
+                    <span id="syncBadge" style="font-size: 0.75rem; color: var(--accent-green);">🟢 Real-Time SSE Active</span>
+                </div>
+
+                <div class="telemetry-grid">
+                    <div class="stat-card">
+                        <small>Active Train</small>
+                        <strong id="dispTrain">12641</strong>
+                    </div>
+                    <div class="stat-card">
+                        <small>Train Name</small>
+                        <strong id="dispName">Pandian Exp</strong>
+                    </div>
+                    <div class="stat-card" style="border-color: var(--primary);">
+                        <small>Assigned Platform</small>
+                        <strong id="dispPlatform" style="color: var(--primary);">PF 2</strong>
+                    </div>
+                    <div class="stat-card">
+                        <small>Current Location</small>
+                        <strong id="dispLocation">Villupuram</strong>
+                    </div>
+                    <div class="stat-card">
+                        <small>Next Stoppage</small>
+                        <strong id="dispNext">Madurai</strong>
+                    </div>
+                    <div class="stat-card" id="delayCard">
+                        <small>Delay Status</small>
+                        <strong id="dispDelay">0 min</strong>
+                    </div>
+                    <div class="stat-card">
+                        <small>CCTV Head Count</small>
+                        <strong id="dispCCTVCount" style="color: #6EE7B7;">210 heads</strong>
+                    </div>
+                    <div class="stat-card">
+                        <small>Platform Crowd</small>
+                        <strong id="dispCrowd" style="color: var(--accent-yellow);">Moderate</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CCTV AI VISION CANVAS -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>📹 Live Edge CCTV AI Vision: Platform 2 Concourse</h2>
+                    <span style="font-size: 0.72rem; background: rgba(239, 68, 68, 0.2); color: #FCA5A5; padding: 0.15rem 0.5rem; border-radius: 4px; font-weight: 700;">● LIVE NPU INFERENCE</span>
+                </div>
+
+                <div class="cctv-container">
+                    <canvas id="cctvCanvas" width="640" height="220"></canvas>
+                    <div class="cctv-hud-top">
+                        <span>🔴 CAM-04: MADURAI JUNCTION (PF-2 CONCOURSE)</span>
+                        <span id="hudFps">NPU: 30.2 FPS | YOLOV8-EDGE</span>
+                    </div>
+                    <div class="cctv-hud-bottom">
+                        <span id="hudHeads">DETECTED HEADS: 210</span>
+                        <span id="hudDensity" style="color: #FCD34D;">DENSITY: 2.1 p/m² [SAFE LIMIT: 3.5]</span>
+                        <span id="hudThreat" style="font-weight: 700; color: #10B981;">STATUS: NORMAL FLOW</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CONTROLS & RESILIENCE -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>⚙️ Manual Station & Train Controls</h2>
+                    <small style="color: var(--text-muted);">Real-time broadcast to all passengers</small>
+                </div>
+
+                <form id="trainForm" onsubmit="event.preventDefault(); submitTrainUpdate();">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label style="font-size: 0.8rem; color: var(--text-muted);">Platform Reassignment</label>
+                            <select id="inputPlatform">
+                                <option value="1">Platform 1</option>
+                                <option value="2">Platform 2</option>
+                                <option value="3">Platform 3</option>
+                                <option value="4">Platform 4</option>
+                                <option value="5">Platform 5</option>
+                                <option value="6">Platform 6</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label style="font-size: 0.8rem; color: var(--text-muted);">Platform Crowd Metric</label>
+                            <select id="inputCrowd" onchange="syncCrowdToCCTV(this.value)">
+                                <option value="Low">🟢 Low (Calm Platform)</option>
+                                <option value="Moderate" selected>🟡 Moderate (Normal Traffic)</option>
+                                <option value="High">🟠 High (Heavy Boarding)</option>
+                                <option value="Overcrowded">🔴 Overcrowded (Stampede Risk)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label style="font-size: 0.8rem; color: var(--text-muted);">Current Location Block</label>
+                            <select id="inputLocation">
+                                <option>Chennai Egmore</option>
+                                <option selected>Villupuram</option>
+                                <option>Tiruchirappalli</option>
+                                <option>Dindigul</option>
+                                <option>Madurai</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label style="font-size: 0.8rem; color: var(--text-muted);">Next Destination Stoppage</label>
+                            <select id="inputNext">
+                                <option>Villupuram</option>
+                                <option>Tiruchirappalli</option>
+                                <option>Dindigul</option>
+                                <option selected>Madurai</option>
+                                <option>Chennai Egmore</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- EDGE SIMULATOR SWITCH -->
+                    <div class="switch-container">
+                        <div>
+                            <strong style="font-size: 0.85rem; color: #FFF;">Simulate Cloud Internet Outage</strong>
+                            <small style="display: block; color: var(--text-muted); font-size: 0.75rem;">Forces pure offline Edge Station Mesh operation (Proves zero-cloud resilience)</small>
+                        </div>
+                        <label class="toggle">
+                            <input type="checkbox" id="simOutage" onchange="toggleOutageSim(this.checked)">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn-primary">
+                        <span>🚆</span> UPDATE TRAIN & BROADCAST TO PASSENGERS
+                    </button>
+                </form>
+            </div>
+
+            <!-- DECENTRALIZED MESH TOPOLOGY -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>📡 Decentralized Station Edge Mesh Network</h2>
+                    <span id="meshHealthBadge" style="font-size: 0.72rem; color: var(--accent-green);">🟢 5/5 NODES ACTIVE</span>
+                </div>
+                <canvas id="meshCanvas" width="640" height="170"></canvas>
+            </div>
+
+        </section>
+
+        <!-- RIGHT COLUMN -->
+        <aside>
+
+            <!-- AI OPERATIONS COPILOT -->
+            <div class="card ai-panel">
+                <div class="card-header">
+                    <h2>🤖 RailNexis AI Copilot</h2>
+                    <span style="background: rgba(139, 92, 246, 0.2); color: #C4B5FD; font-size: 0.72rem; padding: 0.2rem 0.6rem; border-radius: 20px; font-weight: 600;">Autonomous Safety</span>
+                </div>
+                <div id="aiSuggestionsContainer">
+                    <div style="font-size: 0.85rem; color: #94A3B8; text-align: center; padding: 1rem;">
+                        Scanning station parameters for stampede mitigation...
+                    </div>
+                </div>
+            </div>
+
+            <!-- ASSISTANCE QUEUE -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>🆘 Assistance & Divyangjan Queue</h2>
+                    <span id="reqCountBadge" style="font-size: 0.72rem; background: rgba(239, 68, 68, 0.2); color: #FCA5A5; padding: 0.15rem 0.5rem; border-radius: 12px; font-weight: 700;">0 Active</span>
+                </div>
+                <div id="assistanceList" style="max-height: 480px; overflow-y: auto;">
+                    <div style="font-size: 0.85rem; color: var(--text-muted); text-align: center; padding: 1.5rem;">
+                        No assistance requests currently pending.
+                    </div>
+                </div>
+            </div>
+
+        </aside>
+
+    </main>
+
+    <!-- QR HOTSPOT MODAL -->
+    <div id="qrModal" onclick="if(event.target === this) closeHotspotModal()">
+        <div class="qr-card">
+            <h2 style="font-size: 1.25rem; color: #FFF; margin-bottom: 0.5rem;">📱 Open on Physical Mobile Device</h2>
+            <p style="font-size: 0.82rem; color: var(--text-muted);">
+                Test true zero-internet Edge operation by connecting your phone to your laptop's hotspot!
+            </p>
+
+            <div id="qrCodeBox">
+                <!-- SVG QR Code rendered via JS -->
+            </div>
+
+            <div style="background: #0B132B; border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem; margin-bottom: 1rem;">
+                <small style="color: var(--text-muted); display: block; font-size: 0.7rem; text-transform: uppercase;">Direct URL</small>
+                <strong id="hotspotUrlText" style="color: var(--primary); font-size: 1rem; word-break: break-all;">http://192.168.x.x:5000</strong>
+            </div>
+
+            <ol style="text-align: left; font-size: 0.78rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 1.25rem; padding-left: 1.25rem;">
+                <li>Enable <strong>Mobile Hotspot</strong> on this Windows laptop.</li>
+                <li>Connect your smartphone's Wi-Fi to the laptop's hotspot.</li>
+                <li>Turn <strong>OFF Mobile Data</strong> on your phone (airplane mode + Wi-Fi).</li>
+                <li>Scan the QR code with your phone camera to view the passenger portal!</li>
+            </ol>
+
+            <button class="btn-primary" onclick="closeHotspotModal()" style="margin: 0;">Close Window</button>
+        </div>
+    </div>
+
+    <!-- TOAST -->
+    <div id="toast">
+        <span style="font-size: 1.2rem;">✅</span>
+        <span id="toastMsg">Train telemetry updated instantly on Local Edge.</span>
+    </div>
+
+    <!-- CORE SCRIPT -->
+    <script>
+        const TRAIN_NO = "12641";
+        let currentTrainData = null;
+        let cctvCount = 210;
+
+        setInterval(() => {
+            document.getElementById("liveClock").innerText = new Date().toLocaleTimeString();
+        }, 1000);
+
+        function showToast(msg) {
+            const toast = document.getElementById("toast");
+            document.getElementById("toastMsg").innerText = msg;
+            toast.classList.add("show");
+            setTimeout(() => { toast.classList.remove("show"); }, 3500);
+        }
+
+        // ==========================================
+        // 1-CLICK INCIDENT SCENARIOS
+        // ==========================================
+        async function triggerScenario(scenarioId) {
+            try {
+                const res = await fetch("/api/scenarios/apply", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ scenario_id: scenarioId })
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    showToast(data.message);
+                    fetchInitialData();
+
+                    if (scenarioId === "pf2_signal_failure" || scenarioId === "fob_stampede_risk") {
+                        adjustCCTVDensity(420);
+                    } else if (scenarioId === "reset_normal") {
+                        adjustCCTVDensity(190);
+                    }
+                }
+            } catch(e) {
+                console.error("Scenario error:", e);
+            }
+        }
+
+        // ==========================================
+        // CCTV AI CANVAS
+        // ==========================================
+        const cctvCanvas = document.getElementById("cctvCanvas");
+        const ctxCCTV = cctvCanvas.getContext("2d");
+        let particles = [];
+
+        function initCCTVParticles(count) {
+            particles = [];
+            for (let i = 0; i < count; i++) {
+                particles.push({
+                    x: Math.random() * cctvCanvas.width,
+                    y: 45 + Math.random() * (cctvCanvas.height - 85),
+                    vx: (Math.random() - 0.5) * 1.2,
+                    vy: (Math.random() - 0.5) * 0.4
+                });
+            }
+        }
+
+        function drawCCTVFeed() {
+            ctxCCTV.fillStyle = "#070E1A";
+            ctxCCTV.fillRect(0, 0, cctvCanvas.width, cctvCanvas.height);
+
+            // Platform lines
+            ctxCCTV.strokeStyle = "#1E293B"; ctxCCTV.lineWidth = 4;
+            ctxCCTV.beginPath();
+            ctxCCTV.moveTo(0, 30); ctxCCTV.lineTo(cctvCanvas.width, 30);
+            ctxCCTV.moveTo(0, cctvCanvas.height - 30); ctxCCTV.lineTo(cctvCanvas.width, cctvCanvas.height - 30);
+            ctxCCTV.stroke();
+
+            const density = Number((cctvCount / 100).toFixed(2));
+            const isDanger = density >= 3.5;
+
+            particles.forEach((p, idx) => {
+                p.x += p.vx; p.y += p.vy;
+                if (p.x < 10 || p.x > cctvCanvas.width - 20) p.vx *= -1;
+                if (p.y < 45 || p.y > cctvCanvas.height - 45) p.vy *= -1;
+
+                ctxCCTV.fillStyle = isDanger ? "#F87171" : "#60A5FA";
+                ctxCCTV.beginPath();
+                ctxCCTV.arc(p.x, p.y, 4, 0, Math.PI * 2);
+                ctxCCTV.fill();
+
+                if (idx % 3 === 0) {
+                    ctxCCTV.strokeStyle = isDanger ? "#EF4444" : "#10B981";
+                    ctxCCTV.strokeRect(p.x - 7, p.y - 12, 16, 26);
+                }
+            });
+
+            requestAnimationFrame(drawCCTVFeed);
+        }
+
+        function adjustCCTVDensity(val) {
+            cctvCount = Number(val);
+            document.getElementById("dispCCTVCount").innerText = `${val} heads`;
+            initCCTVParticles(Math.min(110, Math.floor(cctvCount / 3)));
+
+            const density = Number((cctvCount / 100).toFixed(2));
+            const densityEl = document.getElementById("hudDensity");
+            const threatEl = document.getElementById("hudThreat");
+            densityEl.innerText = `DENSITY: ${density} p/m² [SAFE LIMIT: 3.5]`;
+
+            if (density >= 3.5) {
+                densityEl.style.color = "#EF4444";
+                threatEl.innerText = "CRITICAL: STAMPEDE THREAT";
+                threatEl.style.color = "#EF4444";
+            } else {
+                densityEl.style.color = "#6EE7B7";
+                threatEl.innerText = "STATUS: SAFE FLOW";
+                threatEl.style.color = "#10B981";
+            }
+        }
+
+        function syncCrowdToCCTV(crowdLevel) {
+            if (crowdLevel === 'Overcrowded') adjustCCTVDensity(420);
+            else if (crowdLevel === 'High') adjustCCTVDensity(310);
+            else if (crowdLevel === 'Moderate') adjustCCTVDensity(210);
+            else adjustCCTVDensity(80);
+        }
+
+        // ==========================================
+        // MESH TOPOLOGY CANVAS
+        // ==========================================
+        const meshCanvas = document.getElementById("meshCanvas");
+        const ctxMesh = meshCanvas.getContext("2d");
+        const meshNodes = [
+            { id: "hub", name: "Station Edge Hub", x: 320, y: 85, color: "#38BDF8", isHub: true },
+            { id: "npu", name: "CCTV AI NPU", x: 120, y: 45, color: "#10B981" },
+            { id: "led", name: "PF Displays", x: 120, y: 125, color: "#10B981" },
+            { id: "ap",  name: "Coach A1 Mesh", x: 520, y: 45, color: "#10B981" },
+            { id: "wan", name: "Cloud WAN Uplink", x: 520, y: 125, color: "#38BDF8" }
+        ];
+        let packetStep = 0;
+
+        function drawMeshTopology() {
+            ctxMesh.fillStyle = "#0A0F1D";
+            ctxMesh.fillRect(0, 0, meshCanvas.width, meshCanvas.height);
+
+            const isOutage = document.getElementById("simOutage").checked;
+            meshNodes.find(n => n.id === "wan").color = isOutage ? "#EF4444" : "#38BDF8";
+
+            meshNodes.forEach(n => {
+                if (n.id !== "hub") {
+                    ctxMesh.strokeStyle = (n.id === "wan" && isOutage) ? "rgba(239, 68, 68, 0.3)" : "rgba(56, 189, 248, 0.4)";
+                    ctxMesh.lineWidth = (n.id === "wan" && isOutage) ? 1 : 2;
+                    ctxMesh.beginPath();
+                    ctxMesh.moveTo(320, 85); ctxMesh.lineTo(n.x, n.y);
+                    ctxMesh.stroke();
+
+                    if (!(n.id === "wan" && isOutage)) {
+                        const px = 320 + (n.x - 320) * ((packetStep % 100) / 100);
+                        const py = 85 + (n.y - 85) * ((packetStep % 100) / 100);
+                        ctxMesh.fillStyle = "#67E8F9";
+                        ctxMesh.beginPath(); ctxMesh.arc(px, py, 3, 0, Math.PI * 2); ctxMesh.fill();
+                    }
+                }
+            });
+
+            meshNodes.forEach(n => {
+                ctxMesh.fillStyle = n.color;
+                ctxMesh.beginPath(); ctxMesh.arc(n.x, n.y, n.isHub ? 13 : 8, 0, Math.PI * 2); ctxMesh.fill();
+                ctxMesh.fillStyle = "#E2E8F0"; ctxMesh.font = "10px sans-serif"; ctxMesh.textAlign = "center";
+                ctxMesh.fillText(n.name, n.x, n.y + (n.isHub ? 22 : 16));
+            });
+
+            packetStep += 1.5;
+            requestAnimationFrame(drawMeshTopology);
+        }
+
+        // ==========================================
+        // DATA ACCESS
+        // ==========================================
+        async function fetchInitialData() {
+            try {
+                const res = await fetch(`/api/train/${TRAIN_NO}?_t=${Date.now()}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    updateStaffUI(data);
+                }
+                fetchHelpRequests();
+                fetchAISuggestions();
+            } catch(e) {}
+        }
+
+        function updateStaffUI(train) {
+            currentTrainData = train;
+            document.getElementById("dispTrain").innerText = train.train_no || TRAIN_NO;
+            document.getElementById("dispName").innerText = train.train_name || "Pandian Exp";
+            document.getElementById("dispPlatform").innerText = `PF ${train.platform}`;
+            document.getElementById("dispLocation").innerText = train.current_location;
+            document.getElementById("dispNext").innerText = train.next_station;
+            document.getElementById("dispCrowd").innerText = train.crowd_level || "Moderate";
+
+            const delayEl = document.getElementById("dispDelay");
+            if (train.delay > 0) {
+                delayEl.innerText = `+${train.delay} min`;
+                delayEl.style.color = "var(--accent-red)";
+            } else {
+                delayEl.innerText = "On Time";
+                delayEl.style.color = "var(--accent-green)";
+            }
+
+            document.getElementById("inputPlatform").value = train.platform;
+            document.getElementById("inputCrowd").value = train.crowd_level || "Moderate";
+            document.getElementById("inputLocation").value = train.current_location;
+            document.getElementById("inputNext").value = train.next_station;
+
+            const isOutage = (train.edge_mode === "Simulated Internet Outage / Station Mesh");
+            document.getElementById("simOutage").checked = isOutage;
+            const edgeStatus = document.getElementById("edgeStatusText");
+            const meshHealth = document.getElementById("meshHealthBadge");
+            if (isOutage) {
+                edgeStatus.innerHTML = `<span style="color: var(--accent-red);">INTERNET OFFLINE</span> (Edge Mesh Active)`;
+                meshHealth.innerText = "🟠 4/4 LOCAL PEERS ACTIVE (WAN OFFLINE)";
+                meshHealth.style.color = "var(--accent-yellow)";
+            } else {
+                edgeStatus.innerHTML = `Edge Node: <strong>ONLINE (0.8ms)</strong>`;
+                meshHealth.innerText = "🟢 5/5 NODES ACTIVE";
+                meshHealth.style.color = "var(--accent-green)";
+            }
+        }
+
+        async function submitTrainUpdate(customData = null) {
+            const payload = customData || {
+                platform: Number(document.getElementById("inputPlatform").value),
+                crowd_level: document.getElementById("inputCrowd").value,
+                current_location: document.getElementById("inputLocation").value,
+                next_station: document.getElementById("inputNext").value,
+                edge_mode: document.getElementById("simOutage").checked ? "Simulated Internet Outage / Station Mesh" : "Normal"
+            };
+
+            try {
+                const res = await fetch(`/api/train/${TRAIN_NO}/update`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+                if (res.ok) {
+                    const result = await res.json();
+                    showToast(result.platform_changed ? `Platform changed to PF ${payload.platform}!` : "Station telemetry updated.");
+                    updateStaffUI(result.train);
+                    fetchAISuggestions();
+                }
+            } catch(e) {}
+        }
+
+        function toggleOutageSim(isChecked) {
+            submitTrainUpdate({
+                platform: Number(document.getElementById("inputPlatform").value),
+                crowd_level: document.getElementById("inputCrowd").value,
+                current_location: document.getElementById("inputLocation").value,
+                next_station: document.getElementById("inputNext").value,
+                edge_mode: isChecked ? "Simulated Internet Outage / Station Mesh" : "Normal"
+            });
+        }
+
+        // ==========================================
+        // AI COPILOT & ASSISTANCE
+        // ==========================================
+        async function fetchAISuggestions() {
+            try {
+                const res = await fetch(`/api/ai/suggestions?_t=${Date.now()}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    renderAISuggestions(data.suggestions || []);
+                }
+            } catch(e) {}
+        }
+
+        function renderAISuggestions(suggestions) {
+            const container = document.getElementById("aiSuggestionsContainer");
+            if (!suggestions.length) {
+                container.innerHTML = `<div style="font-size: 0.85rem; color: #94A3B8; text-align: center; padding: 1rem;">All station parameters operating at green corridor standards.</div>`;
+                return;
+            }
+
+            container.innerHTML = suggestions.map(sug => `
+                <div class="suggestion-card">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.35rem;">
+                        <span style="font-size: 0.72rem; color: #C4B5FD; font-weight: 600;">${sug.category}</span>
+                        <span style="font-size: 0.65rem; padding: 0.15rem 0.5rem; border-radius: 4px; font-weight: 700; background: rgba(239, 68, 68, 0.2); color: #FCA5A5;">${sug.badge}</span>
+                    </div>
+                    <h4 style="font-size: 0.88rem; color: #FFF; margin-bottom: 0.25rem;">${sug.title}</h4>
+                    <p style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.4;">${sug.description}</p>
+                    ${sug.action_type === 'update_platform' ? `<button class="btn-apply-ai" onclick='applyPlatformSug(${sug.action_data.platform})'>⚡ Apply Anti-Stampede PF ${sug.action_data.platform}</button>` : ''}
+                </div>
+            `).join("");
+        }
+
+        function applyPlatformSug(pf) {
+            document.getElementById("inputPlatform").value = pf;
+            submitTrainUpdate();
+        }
+
+        async function fetchHelpRequests() {
+            try {
+                const res = await fetch(`/api/help?_t=${Date.now()}`);
+                if (res.ok) {
+                    const requests = await res.json();
+                    renderHelpRequests(requests);
+                }
+            } catch(e) {}
+        }
+
+        function renderHelpRequests(requests) {
+            const container = document.getElementById("assistanceList");
+            const badge = document.getElementById("reqCountBadge");
+            const activeCount = requests.filter(r => r.status !== 'Resolved').length;
+            badge.innerText = `${activeCount} Active`;
+
+            if (!requests.length) {
+                container.innerHTML = `<div style="font-size: 0.85rem; color: var(--text-muted); text-align: center; padding: 1.5rem;">No assistance requests currently pending.</div>`;
+                return;
+            }
+
+            container.innerHTML = requests.map(req => {
+                const isDivyangjan = req.type.includes('Divyangjan') || req.type.includes('Wheelchair') || req.type.includes('Buggy');
+                const isResolved = (req.status === 'Resolved');
+                return `
+                    <div class="ticket-item ${isDivyangjan ? 'divyangjan' : 'urgent'}">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-muted); margin-bottom: 0.25rem;">
+                            <span>ID: <strong>${req.request_id}</strong> (${req.timestamp})</span>
+                            <span style="font-weight: 700; color: ${isResolved ? 'var(--accent-green)' : 'var(--primary)'};">${req.status.toUpperCase()}</span>
+                        </div>
+                        <div style="font-size: 0.88rem; font-weight: 600; color: #FFF; margin-bottom: 0.2rem;">
+                            ${isDivyangjan ? '♿' : '🚨'} ${req.type}
+                        </div>
+                        <div style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.4rem;">
+                            Location: <strong>Coach ${req.coach}</strong>, Seat <strong>${req.seat}</strong>
+                        </div>
+                        ${!isResolved ? `
+                            <div>
+                                ${isDivyangjan ? `<button class="btn-ticket gold" onclick="respondHelp('${req.request_id}', 'Dispatched', 'Electric Battery Cart #02', 'Electric Buggy dispatched to Coach ${req.coach}')">🛺 Dispatch Buggy #02</button>` : ''}
+                                <button class="btn-ticket" onclick="respondHelp('${req.request_id}', 'Dispatched', 'Station Quick Response', 'Response team dispatched')">🚔 Dispatch Officer</button>
+                                <button class="btn-ticket" onclick="respondHelp('${req.request_id}', 'Resolved', 'Station Staff', 'Completed')">✅ Resolve</button>
+                            </div>
+                        ` : `<span style="font-size: 0.72rem; color: var(--accent-green);">✓ Dispatched & Completed</span>`}
+                    </div>
+                `;
+            }).join("");
+        }
+
+        async function respondHelp(reqId, status, unit, notes) {
+            try {
+                const res = await fetch(`/api/help/${reqId}/respond`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ status, assigned_unit: unit, notes })
+                });
+                if (res.ok) {
+                    showToast(`Dispatched: ${unit}`);
+                    fetchHelpRequests();
+                }
+            } catch(e) {}
+        }
+
+        // ==========================================
+        // QR CODE & PHONE HOTSPOT MODAL
+        // ==========================================
+        async function openHotspotModal() {
+            const modal = document.getElementById("qrModal");
+            modal.style.display = "flex";
+
+            try {
+                const res = await fetch("/api/system/network");
+                if (res.ok) {
+                    const data = await res.json();
+                    document.getElementById("hotspotUrlText").innerText = data.passenger_url;
+                    renderQrCode(data.passenger_url);
+                }
+            } catch(e) {}
+        }
+
+        function closeHotspotModal() {
+            document.getElementById("qrModal").style.display = "none";
+        }
+
+        // Clean SVG QR Generator
+        function renderQrCode(url) {
+            const box = document.getElementById("qrCodeBox");
+            // Standard QR code API fallback + clean SVG mockup
+            box.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(url)}" alt="QR Code" width="180" height="180" style="display: block; border-radius: 4px;" onerror="this.src=''; this.alt='Scan: ' + '${url}'">`;
+        }
+
+        // ==========================================
+        // SSE STREAM
+        // ==========================================
+        function initEventStream() {
+            const evtSource = new EventSource("/api/stream");
+            evtSource.addEventListener("init", (e) => {
+                const data = JSON.parse(e.data);
+                if (data.trains && data.trains[TRAIN_NO]) updateStaffUI(data.trains[TRAIN_NO]);
+                if (data.requests) renderHelpRequests(data.requests);
+            });
+            evtSource.addEventListener("train_update", (e) => {
+                const data = JSON.parse(e.data);
+                if (data.train) updateStaffUI(data.train);
+            });
+            evtSource.addEventListener("help_request_created", () => {
+                fetchHelpRequests();
+                fetchAISuggestions();
+            });
+            evtSource.addEventListener("help_request_updated", () => {
+                fetchHelpRequests();
+            });
+        }
+
+        window.addEventListener("DOMContentLoaded", () => {
+            fetchInitialData();
+            initEventStream();
+            initCCTVParticles(60);
+            drawCCTVFeed();
+            drawMeshTopology();
+            setInterval(fetchInitialData, 6000);
+        });
+    </script>
+</body>
+</html>

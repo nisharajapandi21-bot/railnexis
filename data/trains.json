@@ -1,0 +1,36 @@
+{
+    "12641": {
+        "train_no": "12641",
+        "train_name": "Pandian Express",
+        "source": "Chennai Egmore",
+        "destination": "Madurai",
+        "current_location": "Chennai Egmore",
+        "next_station": "Dindigul",
+        "arrival_time": "10:35 AM",
+        "platform": 4,
+        "speed": 68,
+        "delay": 12,
+        "coach": "A1",
+        "seat": 32,
+        "berth": "Lower Berth",
+        "direction": "Toward Engine",
+        "status": "Platform Diverted (Signal Fault)",
+        "progress": 0,
+        "platform_changed": true,
+        "crowd_level": "High",
+        "edge_mode": "Simulated Internet Outage / Station Mesh",
+        "coach_composition": [
+            "ENG",
+            "GEN",
+            "S1",
+            "S2",
+            "S3",
+            "B1",
+            "A1",
+            "A2",
+            "GEN"
+        ],
+        "last_updated": "2026-10-05T11:26:30.058750",
+        "previous_platform": 4
+    }
+}

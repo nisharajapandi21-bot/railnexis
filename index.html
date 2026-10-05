@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RailNexis - Passenger Edge Information Portal</title>
+    <style>
+        :root {
+            --bg-base: #070B14;
+            --bg-surface: #0E1626;
+            --bg-card: #141F36;
+            --border: #223354;
+            --primary: #0284C7;
+            --primary-light: #38BDF8;
+            --accent-green: #10B981;
+            --accent-yellow: #F59E0B;
+            --accent-red: #EF4444;
+            --accent-gold: #FBBF24;
+            --text-main: #F8FAFC;
+            --text-muted: #94A3B8;
+        }
+
+        body.accessibility-mode {
+            --bg-base: #000000;
+            --bg-surface: #121212;
+            --bg-card: #1E1E1E;
+            --border: #FBBF24;
+            --text-main: #FFFFFF;
+            --text-muted: #FDE68A;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding-bottom: 2.5rem;
+        }
+
+        /* TOP AUDIO ACTIVATION STRIP */
+        #audioUnlockStrip {
+            background: linear-gradient(90deg, #0369A1, #0284C7);
+            color: #FFFFFF;
+            padding: 0.5rem 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        #audioUnlockStrip.unlocked {
+            background: #0E1626;
+            color: var(--accent-green);
+            border-bottom: 1px solid var(--border);
+            cursor: default;
+        }
+
+        .btn-unlock-audio {
+            background: #FFFFFF;
+            color: #0369A1;
+            border: none;
+            padding: 0.25rem 0.65rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        /* HEADER */
+        header {
+            background: #0B1120;
+            border-bottom: 1px solid var(--border);
+            padding: 0.85rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .brand-group {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .brand-logo {
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, #0284C7, #38BDF8);
+            border-radius: 8px;
+            padding: 0.2rem 0.45rem;
+        }
+
+        .brand-title h1 {
+            font-size: 1.15rem;
+            font-weight: 700;
+        }
+
+        .brand-title p {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+        }
+
+        .edge-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(16, 185, 129, 0.12);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 20px;
+            padding: 0.3rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--accent-green);
+        }
+
+        .edge-indicator.mesh {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: rgba(239, 68, 68, 0.35);
+            color: #FCA5A5;
+        }
+
+        .pulse-circle {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: pulse-ring 1.8s infinite;
+        }
+
+        @keyframes pulse-ring {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.3; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        /* UTILITY STRIP */
+        .utility-strip {
+            max-width: 960px;
+            width: 100%;
+            margin: 0.75rem auto 0;
+            padding: 0 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .lang-switch {
+            display: flex;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.2rem;
+            gap: 0.2rem;
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 0.3rem 0.7rem;
+            border-radius: 6px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .lang-btn.active {
+            background: var(--primary);
+            color: #FFFFFF;
+        }
+
+        /* MAIN WRAPPER */
+        main {
+            max-width: 960px;
+            width: 100%;
+            margin: 0.85rem auto;
+            padding: 0 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        /* EMERGENCY ACTION BANNER */
+        #emergencyBanner {
+            display: none;
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.25), rgba(185, 28, 28, 0.4));
+            border: 2px solid var(--accent-red);
+            border-radius: 12px;
+            padding: 1.25rem;
+            animation: pulse-border 1.5s infinite;
+        }
+
+        @keyframes pulse-border {
+            0% { box-shadow: 0 0 10px rgba(239, 68, 68, 0.4); }
+            50% { box-shadow: 0 0 25px rgba(239, 68, 68, 0.8); }
+            100% { box-shadow: 0 0 10px rgba(239, 68, 68, 0.4); }
+        }
+
+        /* DIGITAL BOARDING PASS CARD */
+        .ticket-card {
+            background: linear-gradient(145deg, #10192E, #182542);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            position: relative;
+        }
+
+        .ticket-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 1px dashed var(--border);
+            padding-bottom: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .train-title h2 {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #FFFFFF;
+        }
+
+        .train-title p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 0.2rem;
+        }
+
+        .platform-badge-large {
+            background: #0B132B;
+            border: 2px solid var(--primary-light);
+            border-radius: 12px;
+            padding: 0.75rem 1.25rem;
+            text-align: center;
+            min-width: 130px;
+            transition: all 0.3s;
+        }
+
+        .platform-badge-large.changed {
+            border-color: var(--accent-red);
+            box-shadow: 0 0 25px rgba(239, 68, 68, 0.5);
+        }
+
+        .platform-badge-large small {
+            display: block;
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+        }
+
+        .platform-badge-large strong {
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: #FFFFFF;
+            line-height: 1.1;
+        }
+
+        /* COACH SELECTOR PILLS */
+        .coach-selector-strip {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+
+        .coach-pill-btn {
+            background: #0B132B;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 0.45rem 0.85rem;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .coach-pill-btn:hover { border-color: var(--primary); color: #FFF; }
+        .coach-pill-btn.active {
+            background: var(--primary);
+            color: #FFFFFF;
+            border-color: var(--primary-light);
+            box-shadow: 0 0 12px var(--primary-glow);
+        }
+
+        .coach-pill-btn.gold.active {
+            background: #FBBF24;
+            color: #000;
+            font-weight: 800;
+            border-color: #FDE68A;
+        }
+
+        /* JOURNEY TIMELINE */
+        .timeline-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .time-box {
+            background: rgba(11, 19, 43, 0.6);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.6rem 0.8rem;
+        }
+
+        .time-box small {
+            display: block;
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .time-box strong {
+            font-size: 0.95rem;
+            color: #FFFFFF;
+        }
+
+        /* CARD CONTAINER */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1.25rem;
+        }
+
+        .card h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* 2D STATION MAP */
+        .station-map-container {
+            background: #060A14;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1rem;
+            overflow-x: auto;
+        }
+
+        #stationSvg {
+            width: 100%;
+            min-width: 600px;
+            height: 250px;
+            display: block;
+        }
+
+        /* SMART EGRESS CARD */
+        .egress-card {
+            background: linear-gradient(145deg, rgba(2, 132, 199, 0.15), rgba(16, 23, 38, 0.95));
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .egress-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 0.65rem;
+            margin-top: 0.75rem;
+        }
+
+        .egress-box {
+            background: rgba(11, 19, 43, 0.8);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.6rem;
+        }
+
+        .egress-box small {
+            display: block;
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .egress-box strong {
+            font-size: 0.92rem;
+            color: #FFFFFF;
+        }
+
+        /* AMENITIES */
+        .amenities-strip {
+            display: flex;
+            gap: 0.6rem;
+            overflow-x: auto;
+            padding-bottom: 0.25rem;
+        }
+
+        .amenity-pill {
+            background: rgba(11, 19, 43, 0.7);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 0.4rem 0.85rem;
+            font-size: 0.78rem;
+            color: var(--text-main);
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        /* HELP BUTTONS */
+        .help-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.65rem;
+        }
+
+        @media (max-width: 640px) {
+            .help-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        .btn-help-action {
+            background: #0B132B;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 0.75rem;
+            color: #FFFFFF;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.35rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-help-action:hover {
+            border-color: var(--primary-light);
+            transform: translateY(-2px);
+        }
+
+        .btn-help-action.sos-red {
+            border-color: rgba(239, 68, 68, 0.4);
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        #activeTicketCard {
+            display: none;
+            background: rgba(11, 19, 43, 0.95);
+            border: 1px solid var(--primary);
+            border-radius: 10px;
+            padding: 0.85rem;
+            margin-top: 0.75rem;
+        }
+
+        /* FOOTER */
+        footer {
+            max-width: 960px;
+            width: 100%;
+            margin: 1.5rem auto 0;
+            padding: 0 1rem;
+            text-align: center;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- AUDIO UNLOCK BANNER (PREVENTS CHROME SILENCING) -->
+    <div id="audioUnlockStrip" onclick="unlockAudio()">
+        <span>🔔 Station Audio & Voice Alerts Available</span>
+        <button class="btn-unlock-audio" id="btnAudioUnlock">🔊 Tap to Enable Audio</button>
+    </div>
+
+    <!-- TOP BAR -->
+    <header>
+        <div class="brand-group">
+            <div class="brand-logo">🚆</div>
+            <div class="brand-title">
+                <h1>RailNexis Passenger Portal</h1>
+                <p id="lblSubtitle">Station Edge Information & Safety System</p>
+            </div>
+        </div>
+
+        <div class="edge-indicator" id="edgeMeshBadge">
+            <span class="pulse-circle"></span>
+            <span id="lblEdgeStatus">Station Edge Mesh Active (Zero Internet)</span>
+        </div>
+    </header>
+
+    <!-- UTILITY STRIP -->
+    <div class="utility-strip">
+        <div class="lang-switch">
+            <button class="lang-btn active" onclick="setLanguage('en')">English</button>
+            <button class="lang-btn" onclick="setLanguage('ta')">தமிழ்</button>
+            <button class="lang-btn" onclick="setLanguage('hi')">हिंदी</button>
+        </div>
+
+        <div>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">Local Edge Latency: <strong>0.8 ms</strong></span>
+        </div>
+    </div>
+
+    <!-- MAIN BODY -->
+    <main>
+
+        <!-- EMERGENCY PLATFORM CHANGE ALERT (CONDITIONAL) -->
+        <div id="emergencyBanner">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <span style="font-size: 2rem;">📢</span>
+                <div>
+                    <h3 style="font-size: 1.15rem; font-weight: 800; color: #FEE2E2; margin-bottom: 0.2rem;" id="lblAlertTitle">
+                        PLATFORM CHANGE ALERT
+                    </h3>
+                    <p style="font-size: 0.88rem; color: #FFF;" id="lblAlertDesc">
+                        Pandian Express is now arriving at Platform 4. Follow your personal smart egress path below.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- DIGITAL BOARDING PASS CARD -->
+        <section class="ticket-card">
+            <div class="ticket-top">
+                <div class="train-title">
+                    <span style="background: var(--primary); color: #FFF; padding: 0.15rem 0.5rem; border-radius: 4px; font-weight: 800; font-size: 0.85rem;" id="dispTrainNo">12641</span>
+                    <h2 id="dispTrainName" style="display: inline-block; margin-left: 0.5rem;">Pandian Express</h2>
+                    <p id="dispRoute">Chennai Egmore (MS) ➔ Madurai Junction (MDU)</p>
+                </div>
+
+                <div class="platform-badge-large" id="platformBadgeBox">
+                    <small id="lblPlatformStatus">BOARDING PLATFORM</small>
+                    <strong id="dispPlatform">2</strong>
+                    <div id="dispPlatformTag" style="font-size: 0.65rem; color: #6EE7B7; font-weight: 700;">ON TIME</div>
+                </div>
+            </div>
+
+            <!-- COACH SELECTOR PILLS -->
+            <div>
+                <small style="color: var(--text-muted); font-size: 0.75rem; display: block; margin-bottom: 0.35rem;">
+                    Select your coach to personalize wayfinding & smart egress:
+                </small>
+                <div class="coach-selector-strip">
+                    <button class="coach-pill-btn" onclick="selectCoach('S3')">Coach S3 (Sleeper)</button>
+                    <button class="coach-pill-btn active" onclick="selectCoach('A1')">Coach A1 (AC 2-Tier - Seat 32)</button>
+                    <button class="coach-pill-btn gold" onclick="selectCoach('WHEELCHAIR')">♿ Divyangjan / Wheelchair</button>
+                </div>
+            </div>
+
+            <!-- TIMELINE TELEMETRY -->
+            <div class="timeline-grid">
+                <div class="time-box">
+                    <small id="lblLoc">Current Location</small>
+                    <strong id="dispLocation">Villupuram</strong>
+                </div>
+                <div class="time-box">
+                    <small id="lblNext">Next Stoppage</small>
+                    <strong id="dispNext">Madurai</strong>
+                </div>
+                <div class="time-box">
+                    <small id="lblSpeed">Clearance Speed</small>
+                    <strong id="dispSpeed">68 km/h</strong>
+                </div>
+                <div class="time-box">
+                    <small id="lblCrowd">Platform Crowd</small>
+                    <strong id="dispCrowd" style="color: var(--accent-yellow);">Moderate</strong>
+                </div>
+            </div>
+        </section>
+
+        <!-- SMART ANTI-STAMPEDE EGRESS GUIDE -->
+        <section class="egress-card" id="egressCard">
+            <h3 style="color: #38BDF8; font-size: 0.95rem; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.4rem;">
+                <span>🛡️</span> <span id="dispEgressTitle">Personal Safe Egress Route (Coach A1)</span>
+            </h3>
+            <p style="font-size: 0.82rem; color: #E2E8F0;" id="dispEgressGuidance">
+                Proceed North from Coach A1 door. Use North Escalator (ESC-2) to crossover to Platform 4.
+            </p>
+
+            <div class="egress-grid">
+                <div class="egress-box">
+                    <small>Assigned Path</small>
+                    <strong style="color: #38BDF8;" id="dispEgressPath">🛗 North Escalator (ESC-2)</strong>
+                </div>
+                <div class="egress-box">
+                    <small>Flow Status</small>
+                    <strong style="color: #6EE7B7;" id="dispEgressTraffic">🟢 Optimal Flow (115 people)</strong>
+                </div>
+                <div class="egress-box">
+                    <small>Estimated Time</small>
+                    <strong id="dispEgressEta">1.5 mins (45m)</strong>
+                </div>
+                <div class="egress-box">
+                    <small>Bottleneck to Avoid</small>
+                    <strong style="color: #F87171;" id="dispEgressAvoid">South FOB-1 (Congested)</strong>
+                </div>
+            </div>
+        </section>
+
+        <!-- INTERACTIVE 2D STATION BLUEPRINT -->
+        <section class="card" id="mapSection">
+            <h3>
+                <span>🗺️ Interactive Station Blueprint & Wayfinding</span>
+                <span id="activePathTag" style="font-size: 0.75rem; color: var(--accent-green);">● Safe Path Active</span>
+            </h3>
+
+            <div class="station-map-container">
+                <svg id="stationSvg" viewBox="0 0 800 280">
+                    <defs>
+                        <linearGradient id="pathGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="#10B981" />
+                            <stop offset="100%" stop-color="#38BDF8" />
+                        </linearGradient>
+                        <filter id="glow">
+                            <feGaussianBlur stdDeviation="3" result="blur" />
+                            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                        </filter>
+                    </defs>
+
+                    <!-- Platform 1 -->
+                    <rect x="50" y="25" width="700" height="32" rx="4" fill="#131F37" stroke="#253554" />
+                    <text x="70" y="46" fill="#94A3B8" font-size="11" font-weight="bold">PLATFORM 1</text>
+                    <text x="350" y="46" fill="#64748B" font-size="10">🚰 Water Point  |  🚻 Restroom</text>
+
+                    <!-- Tracks 1-2 -->
+                    <line x1="50" y1="68" x2="750" y2="68" stroke="#334155" stroke-dasharray="6,4" stroke-width="2" />
+                    <line x1="50" y1="78" x2="750" y2="78" stroke="#334155" stroke-dasharray="6,4" stroke-width="2" />
+
+                    <!-- Platform 2 (Current) -->
+                    <rect x="50" y="90" width="700" height="36" rx="4" fill="#1A2846" stroke="#38BDF8" stroke-width="1.5" />
+                    <text x="70" y="113" fill="#38BDF8" font-size="11" font-weight="bold">PLATFORM 2 (CURRENT LOCATION)</text>
+
+                    <!-- Dynamic Coach Position on Platform 2 -->
+                    <rect id="coachMarkerBox" x="520" y="94" width="90" height="28" rx="4" fill="#0284C7" />
+                    <text id="coachMarkerText" x="565" y="112" fill="#FFFFFF" font-size="10" font-weight="bold" text-anchor="middle">COACH A1 (YOU)</text>
+
+                    <!-- Tracks 3-4 -->
+                    <line x1="50" y1="138" x2="750" y2="138" stroke="#334155" stroke-dasharray="6,4" stroke-width="2" />
+                    <line x1="50" y1="148" x2="750" y2="148" stroke="#334155" stroke-dasharray="6,4" stroke-width="2" />
+
+                    <!-- Platform 4 (Target) -->
+                    <rect x="50" y="160" width="700" height="36" rx="4" fill="#15243E" stroke="#10B981" stroke-width="1.5" />
+                    <text x="70" y="183" fill="#6EE7B7" font-size="11" font-weight="bold">PLATFORM 4 (TARGET PLATFORM)</text>
+
+                    <!-- Target Coach Halt point -->
+                    <rect id="targetMarkerBox" x="520" y="164" width="90" height="28" rx="4" fill="#10B981" opacity="0.3" stroke="#10B981" stroke-dasharray="4,2" />
+                    <text id="targetMarkerText" x="565" y="182" fill="#A7F3D0" font-size="10" font-weight="bold" text-anchor="middle">A1 STOP POINT</text>
+
+                    <!-- Bridges -->
+                    <!-- South FOB -->
+                    <rect id="bridgeSouth" x="180" y="15" width="45" height="195" rx="4" fill="#1E293B" stroke="#EF4444" stroke-width="1.5" />
+                    <text x="202" y="115" fill="#FCA5A5" font-size="8.5" font-weight="bold" text-anchor="middle" transform="rotate(-90 202 115)">SOUTH FOB-1</text>
+
+                    <!-- Central Ramp -->
+                    <rect id="bridgeRamp" x="370" y="15" width="45" height="195" rx="4" fill="#1E293B" stroke="#FBBF24" stroke-width="1.5" />
+                    <text x="392" y="115" fill="#FDE68A" font-size="8.5" font-weight="bold" text-anchor="middle" transform="rotate(-90 392 115)">CENTRAL RAMP (WHEELCHAIR)</text>
+
+                    <!-- North Escalator -->
+                    <rect id="bridgeNorth" x="580" y="15" width="45" height="195" rx="4" fill="#10B981" opacity="0.25" stroke="#10B981" stroke-width="2" />
+                    <text x="602" y="115" fill="#6EE7B7" font-size="8.5" font-weight="bold" text-anchor="middle" transform="rotate(-90 602 115)">NORTH ESCALATOR (ESC-2)</text>
+
+                    <!-- DYNAMIC ANIMATED PATH -->
+                    <path id="wayfindingPath" d="M 565 95 L 590 95 L 590 178 L 565 178" fill="none" stroke="url(#pathGradient)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="10, 6" filter="url(#glow)">
+                        <animate attributeName="stroke-dashoffset" from="100" to="0" dur="2s" repeatCount="indefinite" />
+                    </path>
+                </svg>
+            </div>
+        </section>
+
+        <!-- STATION AMENITIES -->
+        <section class="card">
+            <h3><span>Station Amenities at Platform 2 / 4</span></h3>
+            <div class="amenities-strip">
+                <div class="amenity-pill"><span>🚰</span> RO Water Filter (Near Coach A1)</div>
+                <div class="amenity-pill"><span>♿</span> Wheelchair Ramp (Central Ramp R-1)</div>
+                <div class="amenity-pill"><span>🏥</span> First Aid Kiosk (Near FOB-1)</div>
+                <div class="amenity-pill"><span>👮</span> RPF Assistance Booth</div>
+                <div class="amenity-pill"><span>🔋</span> Mobile Charging Station</div>
+            </div>
+        </section>
+
+        <!-- TWO-WAY ASSISTANCE -->
+        <section class="card">
+            <h3><span>Passenger Assistance & SOS</span></h3>
+            <div class="help-grid">
+                <button class="btn-help-action" onclick="requestAssistance('Medical')">
+                    <span style="font-size: 1.3rem;">🏥</span>
+                    <span style="font-size: 0.78rem; font-weight: 600;">Medical</span>
+                </button>
+                <button class="btn-help-action" onclick="requestAssistance('Safety')">
+                    <span style="font-size: 1.3rem;">🛡️</span>
+                    <span style="font-size: 0.78rem; font-weight: 600;">RPF Police</span>
+                </button>
+                <button class="btn-help-action" onclick="requestAssistance('Divyangjan Electric Buggy')">
+                    <span style="font-size: 1.3rem;">🛺</span>
+                    <span style="font-size: 0.78rem; font-weight: 600;">Battery Cart</span>
+                </button>
+                <button class="btn-help-action sos-red" onclick="requestAssistance('Emergency')">
+                    <span style="font-size: 1.3rem;">🚨</span>
+                    <span style="font-size: 0.78rem; font-weight: 600;">Emergency SOS</span>
+                </button>
+            </div>
+
+            <!-- TICKET CARD -->
+            <div id="activeTicketCard">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                    <span style="font-size: 0.85rem; font-weight: 700; color: #FFF;" id="ticketTypeLabel">Medical Request</span>
+                    <span style="font-size: 0.7rem; font-weight: 700; padding: 0.2rem 0.55rem; border-radius: 12px; background: rgba(2, 132, 199, 0.25); color: #38BDF8;" id="ticketStatusBadge">PENDING DISPATCH</span>
+                </div>
+                <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.35rem;">
+                    Ticket ID: <strong id="ticketIdDisp">RN-0000</strong> | Coach: <strong id="ticketCoachDisp">A1</strong>, Seat: <strong>32</strong>
+                </p>
+                <p style="font-size: 0.82rem; color: #E2E8F0;" id="ticketNotesDisp">
+                    Request submitted to Station Master Edge Console. Stand by for response team.
+                </p>
+            </div>
+        </section>
+
+    </main>
+
+    <footer>
+        RailNexis Prototype | Local Edge Computing Information Architecture | Built for Indian Railways
+    </footer>
+
+    <!-- AUDIO ENGINE (WITH UNLOCK FIX) -->
+    <script>
+        let audioCtx = null;
+        let isAudioUnlocked = false;
+
+        function getAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        function unlockAudio() {
+            try {
+                const ctx = getAudioContext();
+                isAudioUnlocked = true;
+                const strip = document.getElementById("audioUnlockStrip");
+                strip.classList.add("unlocked");
+                strip.innerHTML = `<span>🔊 Live Station Chimes & Voice Alerts Active</span> <span style="font-size:0.75rem;">Connected ✓</span>`;
+                playRailwayChime();
+            } catch(e) {}
+        }
+
+        function playRailwayChime() {
+            try {
+                const ctx = getAudioContext();
+                const notes = [
+                    { freq: 523.25, time: 0 },
+                    { freq: 659.25, time: 0.25 },
+                    { freq: 783.99, time: 0.5 }
+                ];
+                notes.forEach(n => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(n.freq, ctx.currentTime + n.time);
+                    gain.gain.setValueAtTime(0.001, ctx.currentTime + n.time);
+                    gain.gain.linearRampToValueAtTime(0.2, ctx.currentTime + n.time + 0.05);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + n.time + 0.35);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(ctx.currentTime + n.time);
+                    osc.stop(ctx.currentTime + n.time + 0.38);
+                });
+            } catch(e) {}
+        }
+
+        function speakAnnouncement(text, lang = 'en') {
+            if (!('speechSynthesis' in window)) return;
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 0.9;
+            utterance.pitch = 1.0;
+
+            if (lang === 'ta') utterance.lang = 'ta-IN';
+            else if (lang === 'hi') utterance.lang = 'hi-IN';
+            else utterance.lang = 'en-IN';
+
+            playRailwayChime();
+            setTimeout(() => { window.speechSynthesis.speak(utterance); }, 850);
+        }
+
+        function announcePlatformDiversion(trainName, newPf) {
+            let msg = "";
+            if (currentLang === 'ta') {
+                msg = `பயணிகள் கவனத்திற்கு. வண்டி எண் 1 2 6 4 1 ${trainName} நடைமேடை ${newPf} இல் வந்து சேரும்.`;
+            } else if (currentLang === 'hi') {
+                msg = `यात्रियों कृपया ध्यान दें। गाड़ी संख्या 1 2 6 4 1 ${trainName} अब प्लेटफार्म ${newPf} पर आएगी।`;
+            } else {
+                msg = `May I have your attention please. Train number 1 2 6 4 1, ${trainName}, will now arrive on Platform ${newPf}.`;
+            }
+            speakAnnouncement(msg, currentLang);
+        }
+    </script>
+
+    <!-- CORE SCRIPT -->
+    <script>
+        const TRAIN_NO = "12641";
+        let previousPlatform = null;
+        let currentData = null;
+        let currentLang = 'en';
+        let selectedCoach = 'A1';
+        let activeRequestId = null;
+
+        const i18n = {
+            en: {
+                subtitle: "Station Edge Information & Safety System",
+                alertTitle: "PLATFORM CHANGE ALERT",
+                alertDesc: (train, pf) => `${train} is now arriving at Platform ${pf}. Follow your smart egress path.`
+            },
+            ta: {
+                subtitle: "நிலைய எட்ஜ் தகவல் மற்றும் பாதுகாப்பு அமைப்பு",
+                alertTitle: "நடைமேடை மாற்ற அறிவிப்பு",
+                alertDesc: (train, pf) => `${train} நடைமேடை ${pf} க்கு மாற்றப்பட்டுள்ளது. உங்கள் வழித்தடத்தை பின்பற்றவும்.`
+            },
+            hi: {
+                subtitle: "स्टेशन एज सूचना एवं सुरक्षा प्रणाली",
+                alertTitle: "प्लेटफार्म परिवर्तन सूचना",
+                alertDesc: (train, pf) => `${train} अब प्लेटफार्म ${pf} पर आएगी। स्मार्ट निकास मार्ग का पालन करें।`
+            }
+        };
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            document.querySelectorAll(".lang-btn").forEach(b => b.classList.remove("active"));
+            event.target.classList.add("active");
+            document.getElementById("lblSubtitle").innerText = i18n[lang].subtitle;
+            if (currentData) updateUI(currentData);
+        }
+
+        // ==========================================
+        // DYNAMIC COACH SELECTION & DYNAMIC 2D MAP
+        // ==========================================
+        function selectCoach(coach) {
+            selectedCoach = coach;
+            document.querySelectorAll(".coach-pill-btn").forEach(b => b.classList.remove("active"));
+            event.target.classList.add("active");
+
+            const isDivyangjan = (coach === 'WHEELCHAIR');
+            document.body.classList.toggle("accessibility-mode", isDivyangjan);
+
+            // Re-render Dynamic Map Path
+            updateStationMapPath(coach);
+            fetchEgressRoute(coach);
+
+            if (isDivyangjan) {
+                if ('vibrate' in navigator) navigator.vibrate([200, 100, 200]);
+                speakAnnouncement("Divyangjan and Senior Citizen Accessibility Mode activated. Barrier-free Central Ramp R-1 selected.", currentLang);
+                requestAssistance('Divyangjan Electric Buggy');
+            }
+        }
+
+        function updateStationMapPath(coach) {
+            const coachBox = document.getElementById("coachMarkerBox");
+            const coachText = document.getElementById("coachMarkerText");
+            const targetBox = document.getElementById("targetMarkerBox");
+            const targetText = document.getElementById("targetMarkerText");
+            const pathEl = document.getElementById("wayfindingPath");
+
+            const southFob = document.getElementById("bridgeSouth");
+            const ramp = document.getElementById("bridgeRamp");
+            const northEsc = document.getElementById("bridgeNorth");
+
+            // Reset bridge highlights
+            southFob.style.stroke = "#EF4444"; southFob.style.strokeWidth = "1.5";
+            ramp.style.stroke = "#FBBF24"; ramp.style.strokeWidth = "1.5";
+            northEsc.style.stroke = "#10B981"; northEsc.style.strokeWidth = "2";
+
+            if (coach === 'S3') {
+                // Sleeper coach (South end of train)
+                coachBox.setAttribute("x", "120");
+                coachText.setAttribute("x", "165");
+                coachText.textContent = "COACH S3 (YOU)";
+
+                targetBox.setAttribute("x", "120");
+                targetText.setAttribute("x", "165");
+                targetText.textContent = "S3 STOP POINT";
+
+                southFob.style.stroke = "#10B981"; southFob.style.strokeWidth = "3";
+                pathEl.setAttribute("d", "M 165 95 L 202 95 L 202 178 L 165 178");
+            } else if (coach === 'WHEELCHAIR') {
+                // Divyangjan via Central Ramp
+                coachBox.setAttribute("x", "310");
+                coachText.setAttribute("x", "355");
+                coachText.textContent = "♿ WHEELCHAIR";
+
+                targetBox.setAttribute("x", "310");
+                targetText.setAttribute("x", "355");
+                targetText.textContent = "♿ STOP POINT";
+
+                ramp.style.stroke = "#10B981"; ramp.style.strokeWidth = "3";
+                pathEl.setAttribute("d", "M 355 95 L 392 95 L 392 178 L 355 178");
+            } else {
+                // Coach A1 (AC - North end of train)
+                coachBox.setAttribute("x", "520");
+                coachText.setAttribute("x", "565");
+                coachText.textContent = "COACH A1 (YOU)";
+
+                targetBox.setAttribute("x", "520");
+                targetText.setAttribute("x", "565");
+                targetText.textContent = "A1 STOP POINT";
+
+                northEsc.style.stroke = "#10B981"; northEsc.style.strokeWidth = "3";
+                pathEl.setAttribute("d", "M 565 95 L 602 95 L 602 178 L 565 178");
+            }
+        }
+
+        async function fetchEgressRoute(coach) {
+            try {
+                const res = await fetch(`/api/egress/routes?coach=${coach}&_t=${Date.now()}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    const r = data.route;
+                    document.getElementById("dispEgressTitle").innerText = `Personal Safe Egress Route (${r.coach})`;
+                    document.getElementById("dispEgressGuidance").innerText = r.guidance;
+                    document.getElementById("dispEgressPath").innerText = r.assigned_route;
+                    document.getElementById("dispEgressTraffic").innerText = r.safety_status;
+                    document.getElementById("dispEgressEta").innerText = `${r.eta} (${r.distance})`;
+                    document.getElementById("dispEgressAvoid").innerText = r.avoid_point;
+                }
+            } catch(e) {}
+        }
+
+        // ==========================================
+        // UI UPDATE PIPELINE
+        // ==========================================
+        function updateUI(train) {
+            const isFirstLoad = (previousPlatform === null);
+            const platformChanged = (!isFirstLoad && previousPlatform !== train.platform);
+
+            currentData = train;
+
+            document.getElementById("dispTrainNo").innerText = train.train_no || TRAIN_NO;
+            document.getElementById("dispTrainName").innerText = train.train_name || "Pandian Express";
+            document.getElementById("dispRoute").innerText = `${train.source} ➔ ${train.destination}`;
+            document.getElementById("dispLocation").innerText = train.current_location;
+            document.getElementById("dispNext").innerText = train.next_station;
+            document.getElementById("dispSpeed").innerText = `${train.speed} km/h`;
+            document.getElementById("dispCrowd").innerText = train.crowd_level || "Moderate";
+            document.getElementById("dispPlatform").innerText = train.platform;
+
+            const badgeBox = document.getElementById("platformBadgeBox");
+            const alertBanner = document.getElementById("emergencyBanner");
+            const tag = document.getElementById("dispPlatformTag");
+
+            if (train.platform_changed || platformChanged) {
+                badgeBox.classList.add("changed");
+                alertBanner.style.display = "block";
+                tag.innerText = "PLATFORM CHANGED";
+                tag.style.color = "var(--accent-red)";
+
+                document.getElementById("lblAlertTitle").innerText = i18n[currentLang].alertTitle;
+                document.getElementById("lblAlertDesc").innerText = i18n[currentLang].alertDesc(train.train_name, train.platform);
+
+                if (platformChanged) {
+                    announcePlatformDiversion(train.train_name, train.platform);
+                    if ('vibrate' in navigator) navigator.vibrate([400, 200, 400]);
+                }
+            } else {
+                badgeBox.classList.remove("changed");
+                alertBanner.style.display = "none";
+                tag.innerText = "ON TIME";
+                tag.style.color = "var(--accent-green)";
+            }
+
+            previousPlatform = train.platform;
+
+            // Edge mode
+            const badge = document.getElementById("edgeMeshBadge");
+            if (train.edge_mode === "Simulated Internet Outage / Station Mesh") {
+                badge.classList.add("mesh");
+                document.getElementById("lblEdgeStatus").innerText = "Simulated Cloud Outage - Pure Edge Active";
+            } else {
+                badge.classList.remove("mesh");
+                document.getElementById("lblEdgeStatus").innerText = "Station Edge Mesh Active (Zero Internet)";
+            }
+        }
+
+        // ==========================================
+        // ASSISTANCE
+        // ==========================================
+        async function requestAssistance(type) {
+            try {
+                const res = await fetch("/api/help", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        type: type,
+                        train: TRAIN_NO,
+                        coach: selectedCoach,
+                        seat: "32"
+                    })
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    activeRequestId = data.request_id;
+                    showTicketCard(data.request);
+                    playRailwayChime();
+                }
+            } catch(e) {}
+        }
+
+        function showTicketCard(req) {
+            const card = document.getElementById("activeTicketCard");
+            card.style.display = "block";
+            document.getElementById("ticketTypeLabel").innerText = `${req.type} Assistance`;
+            document.getElementById("ticketIdDisp").innerText = req.request_id;
+            document.getElementById("ticketCoachDisp").innerText = req.coach;
+
+            const badge = document.getElementById("ticketStatusBadge");
+            badge.innerText = req.status.toUpperCase();
+
+            if (req.status === 'Dispatched') {
+                badge.style.background = "rgba(16, 185, 129, 0.25)";
+                badge.style.color = "#6EE7B7";
+                document.getElementById("ticketNotesDisp").innerHTML = `
+                    <strong>${req.assigned_unit}</strong> is on the way to Coach ${req.coach}!
+                    <br><small style="color: #94A3B8;">${req.notes}</small>
+                `;
+            } else if (req.status === 'Resolved') {
+                badge.style.background = "rgba(16, 185, 129, 0.4)";
+                badge.style.color = "#A7F3D0";
+                document.getElementById("ticketNotesDisp").innerText = "Assistance completed by Station Staff.";
+            } else {
+                badge.style.background = "rgba(2, 132, 199, 0.25)";
+                badge.style.color = "#38BDF8";
+                document.getElementById("ticketNotesDisp").innerText = "Request queued on Station Edge Console. Buggy / Officer assigned.";
+            }
+        }
+
+        // ==========================================
+        // SSE STREAM & INIT
+        // ==========================================
+        function initSSE() {
+            const evtSource = new EventSource("/api/stream");
+            evtSource.addEventListener("init", (e) => {
+                const data = JSON.parse(e.data);
+                if (data.trains && data.trains[TRAIN_NO]) updateUI(data.trains[TRAIN_NO]);
+            });
+            evtSource.addEventListener("train_update", (e) => {
+                const data = JSON.parse(e.data);
+                if (data.train) updateUI(data.train);
+            });
+            evtSource.addEventListener("help_request_updated", (e) => {
+                const req = JSON.parse(e.data);
+                if (activeRequestId && req.request_id === activeRequestId) {
+                    showTicketCard(req);
+                    playRailwayChime();
+                }
+            });
+        }
+
+        async function fetchTrainFallback() {
+            try {
+                const res = await fetch(`/api/train/${TRAIN_NO}?_t=${Date.now()}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    updateUI(data);
+                }
+            } catch(e) {}
+        }
+
+        window.addEventListener("DOMContentLoaded", () => {
+            fetchTrainFallback();
+            initSSE();
+            fetchEgressRoute('A1');
+            setInterval(fetchTrainFallback, 5000);
+        });
+
+        // User interaction audio unlock listener
+        document.addEventListener("click", () => {
+            if (!isAudioUnlocked) unlockAudio();
+        }, { once: true });
+    </script>
+</body>
+</html>
